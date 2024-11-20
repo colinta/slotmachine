@@ -1,0 +1,35 @@
+{
+  "name": "slot-machine",
+  "version": "1.0.0",
+  "description": "Like pbcopy/pbpaste but with named clipboards",
+  "main": "slot",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "bin": {
+    "slot": "./slot"
+  },
+  "man": "./slot.1",
+  "scripts": {
+    "prepublishOnly": "yarn generate-manual",
+    "generate-manual": "if [[ -f slot.1 ]]; then rm slot.1 ; fi ; yarn --silent marked-man README.md > slot.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/colinta/slot-machine.git"
+  },
+  "keywords": [
+    "sed"
+  ],
+  "author": "Colin T.A. Gray <colinta@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/colinta/slot-machine/issues"
+  },
+  "homepage": "https://github.com/colinta/slot-machine#readme",
+  "devDependencies": {
+    "marked-man": "^2.1.0",
+    "ssed": "^1.6.4"
+  }
+}

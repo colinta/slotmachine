@@ -1,0 +1,20 @@
+.TH "SLOT" "1" "November 2024" "1.0.0"
+.SH "NAME"
+\fBslot\fR \- store or retrieve text from stdin/stdout
+.SH SYNOPSIS
+.RS 2
+.nf
+# store for later
+echo \-n "hello" | slot greeting
+
+# retrieve
+slot greeting > greeting\.txt
+.fi
+.RE
+.SH DESCRIPTION
+.P
+\fBslot\fP is super simple\. Store things by piping text into it, then retrieve them later\. If you have used \fBpbcopy\fP/\fBpbpaste\fP, this is similar but doesn't interfere with your clipboard\.
+.SH OPTIONS
+.P
+None
+

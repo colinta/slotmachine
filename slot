@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+const fs = require('fs')
+const EventEmitter = require('events')
+const { exec, execSync } = require('child_process')
+
+class ArgError extends Error {}
+
+process.stdout.on('error', function (err) {
+  if (err.code === 'EPIPE') {
+    exec('stty echo', () => {
+      process.exit(0)
+    })
+  }
+})
+
+function main(args) {
+  // name is required
+  const name = args[0]
+  if (!name) {
+    throw new ArgError('name is required')
+  }
+
+  // name can only be alphanumeric, -, _, .
+  if (!name.match(/^[a-zA-Z0-9_\.-]+$/)) {
+    throw new ArgError(`slot '${name}' is invalid. name can only contain [a-z0-9_.-]`)
+  }
+
+  const slots = `${process.env.HOME}/.config/slots`
+  if (!fs.existsSync(`${slots}`)) {
+    fs.mkdirSync(`${slots}`)
+  }
+
+  const slotPath = `${slots}/${name}`
+
+  if (!process.stdin.isTTY) {
+    const content = fs.readFileSync(0, 'utf-8')
+
+    fs.writeFileSync(slotPath, content)
+    process.stderr.write(`${content.length} bytes written to slot '${name}'\n`)
+
+    return
+  }
+
+  if (fs.existsSync(slotPath)) {
+    process.stdout.write(fs.readFileSync(slotPath))
+  } else {
+    throw new ArgError(`slot '${name}' does not exist`)
+  }
+}
+
+try {
+  // remove 'node' and 'slot' from argv
+  main(process.argv.slice(2))
+} catch (e) {
+  if (e instanceof ArgError) {
+    process.stderr.write(`slot: ${e.message}\n`)
+  } else {
+    throw e
+  }
+}
