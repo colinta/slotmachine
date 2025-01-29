@@ -13,21 +13,85 @@ process.stdout.on('error', function (err) {
   }
 })
 
-function main(args) {
-  // name is required
-  const name = args[0]
-  if (!name) {
-    throw new ArgError('name is required')
+function usage() {
+  process.stdout.write(`\
+Usage:
+
+    slot              List all stored slots
+    … | slot <name>   Store stdout into slot <name>
+    slot <name> | …   Output slot <name>
+    slot --rm <name>  Delete slot <name>
+    slot --clear      Delete all slots
+`)
+}
+
+function rm(slots, name) {
+  const slotPath = `${slots}/${name}`
+  if (!fs.existsSync(slotPath)) {
+    throw new ArgError(`slot '${name}' does not exist`)
   }
 
+  fs.unlinkSync(slotPath)
+  process.stderr.write(`slot '${name}' removed\n`)
+}
+
+function main(args) {
+  // name is required
+  const slots = process.env.SLOT_MACHINE ?? `${process.env.HOME}/.config/slots`
+
+  let command = undefined
+  let name = undefined
+  for (const arg of args) {
+    if (arg === '--rm') {
+      command = 'rm'
+    } else if (arg === '--clear') {
+      command = 'clear'
+    } else if (arg === '--help') {
+      command = 'help'
+    } else if (arg.startsWith('-')) {
+      usage()
+      throw new ArgError(`unexpected command: ${arg}`)
+    } else {
+      if (name) {
+        usage()
+        throw new ArgError(`unexpected argument: ${arg}`)
+      }
+      name = arg
+    }
+  }
+
+  if (command === 'help') {
+    usage()
+    return
+  } else if (command === 'rm') {
+    if (!name) {
+      throw new ArgError('name is required')
+    }
+
+    rm(slots, name)
+    return
+  } else if (command === 'clear') {
+    if (fs.existsSync(slots)) {
+      fs.readdirSync(slots).forEach((slot) => {
+        rm(slots, slot)
+      })
+    }
+    return
+  } else if (!command && !name) {
+    if (fs.existsSync(slots)) {
+      fs.readdirSync(slots).forEach((slot) => {
+        process.stdout.write(`${slot}\n`)
+      })
+    }
+    return
+  }
   // name can only be alphanumeric, -, _, .
   if (!name.match(/^[a-zA-Z0-9_\.-]+$/)) {
     throw new ArgError(`slot '${name}' is invalid. name can only contain [a-z0-9_.-]`)
   }
 
-  const slots = `${process.env.HOME}/.config/slots`
-  if (!fs.existsSync(`${slots}`)) {
-    fs.mkdirSync(`${slots}`)
+  if (!fs.existsSync(slots)) {
+    fs.mkdirSync(slots)
   }
 
   const slotPath = `${slots}/${name}`
@@ -46,10 +110,11 @@ function main(args) {
   } else {
     throw new ArgError(`slot '${name}' does not exist`)
   }
+
+  return
 }
 
 try {
-  // remove 'node' and 'slot' from argv
   main(process.argv.slice(2))
 } catch (e) {
   if (e instanceof ArgError) {

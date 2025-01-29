@@ -12,8 +12,15 @@
   },
   "man": "./slot.1",
   "scripts": {
-    "prepublishOnly": "yarn generate-manual",
-    "generate-manual": "if [[ -f slot.1 ]]; then rm slot.1 ; fi ; yarn --silent marked-man README.md > slot.1"
+    "prepublishOnly": "npm run generate-manual",
+    "gen0": "[ -f _README.md ] && rm _README.md ; [ -f _USAGE.md ] && rm _USAGE.md",
+    "gen1": "ssed <slot on/Usage 'off/^`' > _USAGE.md",
+    "gen2": "npx ssed <README.md off/USAGE \"end/USAGE\\n-----\n\" > _README.md",
+    "gen3": "<_USAGE.md cat >> _README.md",
+    "gen4": "mv _README.md README.md",
+    "gen5": "if [[ -f slot.1 ]]; then rm slot.1 ; fi",
+    "gen6": "npx marked-man --silent README.md > slot.1",
+    "generate-manual": "npm run gen0 && npm run gen1 && npm run gen2 && npm run gen3 && npm run gen4 && npm run gen5 && npm run gen6"
   },
   "repository": {
     "type": "git",
